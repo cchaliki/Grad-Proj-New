@@ -1,0 +1,204 @@
+---
+title: "Assuming Positivity"
+author: "Catherine Chalikian"
+date: "4/21/2022"
+theme: "flatly"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### As curious creatures, we often seek to understand how things work. This includes determining causal effects. Statistics has established mathematical methods in this pursuit of identifying cause and effect. However, these methods are only valid when certain assumptions are met. One such assumption is the probabilistic assumption, also called the positivity assumption.
+
+### The Assumption
+
+The positivity assumption states that each individual must have non-zero probabilities of being assigned to each exposure group. To have a non-zero probability for each group, they would need to have a probability strictly between 0 and 1 for both. Women who suffer from migraines are not supposed to take certain oral contraceptives, so they would never be assigned to the treatment in a birth control study. So, what if some were included in the trial? What can go wrong? We will run a simulation to explore this question, then talk about the what's happening behind the scenes.
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE}
+printFlag = FALSE
+library(tidyverse, warn.conflicts = FALSE)
+library(broom)
+```
+
+
+## Simulating A Downfall
+
+We'll start by creating a confounding variable *z*, which will be sampled randomly around the standard normal. This means, we would expect to have roughly equal numbers of *z* observations above and below zero. As a confounder, *z* acts on both the exposure *x* and outcome *y*, so both variables are generated based on the covariate *z*. Now, if we violate positivity, that means that there is at least one observation with no chance of being assigned to the treatment (or no chance of being assigned to control), so we will assign the probabilities of *x* to 0 if the $z < 0.5$.
+
+```{r}
+n = 100
+set.seed(5)
+
+# generate data
+datsim = tibble(
+  z = rnorm(n),
+  xlin = z + rnorm(n),
+  x_p = ifelse(z < .5, exp(xlin)/(1 + exp(xlin)), 0),
+  x = rbinom(n,1, x_p),
+  y = z + x
+)
+```
+
+
+```{r, results = FALSE, warning=FALSE}
+# propensity score model
+glm_sim = glm(x ~ z,
+          data = datsim,
+          family = binomial())
+
+
+# add propensity scores to df
+datsim = glm_sim %>%
+  augment(type.predict = "response",
+          data = datsim)
+
+```
+
+Based on this data, the propensity score model then determines how likely a person is to be assigned to the treatment group. The probabilities of certain *x*'s always being 0 is baked in already, so none of the propensity scores are actually zero here. Still, we an incredible imbalance of data already.
+
+```{r, results = FALSE, warning=FALSE}
+df_plot_ps_simuw = datsim %>%
+  tidyr::pivot_wider(names_from = x,
+                     values_from = .fitted,
+                     names_prefix = "x_p")
+
+ggplot(df_plot_ps_simuw)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p1),
+                 fill = "turquoise3")+
+  geom_histogram(bins = 5,
+                 aes(x = x_p0,
+                     y = -stat(count)),
+                 fill = "tomato3")+
+  geom_label(
+    label = "Received Treatment",
+    x = .38,
+    y = 7
+  )+
+  geom_label(
+    label = "Did Not Receive Treatment",
+    x = .38,
+    y = -15
+  )+
+  scale_y_continuous("count", label = abs) + 
+  scale_x_continuous("propensity score") +
+  labs(title = "Unweighted Propensity Score Distribution")
+```
+
+```{r}
+# generate possible exposure assignments X
+exp_assmt_func = function(nrow,ncol){
+  matrix(sample(c(0,1), replace=T, size = nrow*ncol), nrow = nrow)
+}
+exp_assmt = exp_assmt_func(5,49)
+
+# add one col of all 0's
+exp_assmt = cbind(integer(5), exp_assmt)
+exp_assmt
+
+# choose X at random
+row_num = sample(1:5,1)
+x = exp_assmt[row_num,]
+```
+
+
+```{r}
+as.data.frame(table(x))
+```
+
+Now let's say that there are only 5 exposure assignments with assignment mechanisms greater than 0 and that the assignment mechanisms have equal probability 0.2. Then, we can select one at random to be our exposure assignment vector.
+>>>>>>> be5660f52e6e8388d713a73b94dfdc1f8e4ed60d
+
+```{r}
+datsim %>%
+  summarise(observed_causal_effect = mean(y[x == 1]) - 
+              mean(y[x == 0]))
+```
+
+This causal effect is meaningless, because of bias, which we will discuss later. Violating assumptions is clearly the devil's work. Just for fun, let's weight the model so that causal effect is even more affected by these propensity scores.
+
+```{r}
+# calculate weights and add to df
+datsim = datsim %>%
+  mutate(w_ate = x/ .fitted + (1 - x)/(1 - .fitted))
+
+```
+
+```{r, results = FALSE, warning=FALSE}
+# propensity score model
+ggplot(df_plot_ps_simuw)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p1),
+                 fill = "turquoise3")+
+  geom_histogram(bins = 25,
+                 alpha = .5,
+                 aes(x = x_p1,
+                     weight = datsim$w_ate),
+                 fill = "turquoise3")+
+  geom_histogram(bins = 5,
+                 aes(x = x_p0,
+                     y = -stat(count)),
+                 fill = "tomato3")+
+  geom_histogram(bins = 25,
+                 alpha = .5,
+                 aes(x = x_p0,
+                     weight = datsim$w_ate,
+                     y = -stat(count)),
+                 fill = "tomato3")+
+  geom_label(
+    label = "Received Treatment",
+    x = .52,
+    y = 7
+  )+
+  geom_label(
+    label = "Did Not Receive Treatment",
+    x = .52,
+    y = -14
+  )+
+  scale_y_continuous("count", label = abs) + 
+  scale_x_continuous("propensity score") +
+  labs(title = "Unweighted Propensity Score Distribution")
+```
+
+We get an ATE of 0.83.
+
+```{r}
+datsim %>%
+  summarise(
+    ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
+      sum((1-x)*w_ate)
+  )
+```
+
+How off are these weighted and unweighted estimates? We'll group by *z* to find out. When we do this, observations for individuals with z > 0.5 will not be included in the causal estimate for the general population. This is essentially how the problem of positivity is avoided in practice: study design establishes eligibility criteria that would exclude such persons from being in the study. Hence, our migraine sufferers would not be included in the study.
+
+```{r}
+# creating group variable to filter
+datsim$inpop = ifelse(datsim$z < .5,1,0)
+
+datsim %>%
+  group_by(inpop)%>%
+  summarise(
+    observed_causal_effect = mean(y[x == 1]) - mean(y[x == 0]),
+    ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
+      sum((1-x)*w_ate)
+  )
+```
+
+Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact!
+
+### Why are these estimates wrong?
+
+We use causal estimands in practice regularly, because they are unbiased *when we meet the underlying assumptions*. For our causal estimator $\hat{\tau}$ to be unbiased, we need each $X_i$ to be random. When $X_i$ is random, we are able to take the expected value and see that $E[\hat{\tau}] = \tau$ . But wait, we made some of those $X_i$'s above not random. Our $E[X_i|Z] = 0$.
+
+When an individual has a unit assignment probability of 0 or 1, that means he/she will either never or always be assigned to the treatment group. If someone can never be part of the other group, they are fundamentally different from the others in the trial. The reason that our causal analysis works is that we are comparing people who could theoretically be in either group and therefore are similar. When someone cannot be in a particular group, we are conditioning on a zero-probability event.
+
+
+
+
+
+
+
+

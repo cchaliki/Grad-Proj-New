@@ -167,6 +167,7 @@ datsim %>%
 #mean(y[x == 1]) - mean(y[x == 0])
 ```
 
+
 Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact!
 
 ### Why are these estimates wrong?

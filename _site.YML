@@ -1,0 +1,9 @@
+name: "Graduate Project"
+
+navbar:
+
+  - title: "Assuming Positivity"
+  
+    href: index.html
+  
+output_dir: "."

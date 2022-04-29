@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Catherine Chalikian" />
+
+
+<title>Assuming Positivity</title>
+
+<script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Assuming Positivity</h1>
+<h4 class="author">Catherine Chalikian</h4>
+<h4 class="date">4/21/2022</h4>
+
+</div>
+
+
+<div id="as-curious-creatures-we-often-seek-to-understand-how-things-work.-this-includes-determining-causal-effects.-statistics-has-established-mathematical-methods-in-this-pursuit-of-identifying-cause-and-effect.-however-these-methods-are-only-valid-when-certain-assumptions-are-met.-one-such-assumption-is-the-probabilistic-assumption-also-called-the-positivity-assumption." class="section level4">
+<h4>As curious creatures, we often seek to understand how things work. This includes determining causal effects. Statistics has established mathematical methods in this pursuit of identifying cause and effect. However, these methods are only valid when certain assumptions are met. One such assumption is the probabilistic assumption, also called the positivity assumption.</h4>
+</div>
+<div id="the-assumption" class="section level3">
+<h3>The Assumption</h3>
+<p>The positivity assumption states that each individual must have non-zero probabilities of being assigned to each exposure group. To have a non-zero probability, they would need to have an average unit assignment probability strictly between 0 and 1 for both groups. Women who suffer from migraines are not supposed to take certain oral contraceptives, so they would never be assigned to the treatment in a birth control study. So, what if some were included in the trial? What can go wrong? We will run a simulation to explore this question, then talk about the what’s happening behind the scenes.</p>
+</div>
+<div id="simulating-a-downfall" class="section level2">
+<h2>Simulating A Downfall</h2>
+<p>We’ll start by creating a confounding variable <em>z</em>, which will be sampled randomly around the standard normal. This means, we would expect to have roughly equal numbers of <em>z</em> observations above and below zero. As a confounder, <em>z</em> acts on both the exposure <em>x</em> and outcome <em>y</em>, so both variables are generated based on the covariate <em>z</em>. Now, if we violate positivity, that means that there is at least one observation with no chance of being assigned to the treatment (or no chance of being assigned to control), so we will assign the probabilities of <em>x</em> to 0 if the <span class="math inline">\(z \ge 0.5\)</span>.</p>
+<pre class="r"><code>n = 100
+set.seed(5)
+
+# generate data
+datsim = tibble(
+  z = rnorm(n),
+  xlin = z + rnorm(n),
+  x_p = ifelse(z &lt; .5, exp(xlin)/(1 + exp(xlin)), 0),
+  x = rbinom(n,1, x_p),
+  y = z + x
+)</code></pre>
+<pre class="r"><code># propensity score model
+glm_sim = glm(x ~ z,
+          data = datsim,
+          family = binomial())
+
+
+# add propensity scores to df
+datsim = glm_sim %&gt;%
+  augment(type.predict = &quot;response&quot;,
+          data = datsim)</code></pre>
+<p>Based on this data, the propensity score model then determines how likely a person is to be assigned to the treatment group. The probabilities of certain <em>x</em>’s always being 0 is baked in already, so none of the propensity scores are actually zero here. Still, we an incredible imbalance of data already.</p>
+<pre class="r"><code>df_plot_ps_simuw = datsim %&gt;%
+  tidyr::pivot_wider(names_from = x,
+                     values_from = .fitted,
+                     names_prefix = &quot;x_p&quot;)
+
+ggplot(df_plot_ps_simuw)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p1),
+                 fill = &quot;turquoise3&quot;)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p0,
+                     y = -stat(count)),
+                 fill = &quot;tomato3&quot;)+
+  geom_label(
+    label = &quot;Received Treatment&quot;,
+    x = .38,
+    y = 7
+  )+
+  geom_label(
+    label = &quot;Did Not Receive Treatment&quot;,
+    x = .38,
+    y = -15
+  )+
+  scale_y_continuous(&quot;count&quot;, label = abs) + 
+  scale_x_continuous(&quot;propensity score&quot;) +
+  labs(title = &quot;Unweighted Propensity Score Distribution&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>datsim %&gt;%
+  summarise(observed_causal_effect = mean(y[x == 1]) - 
+              mean(y[x == 0]))</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   observed_causal_effect
+##                    &lt;dbl&gt;
+## 1                  0.666</code></pre>
+<p>This causal effect is meaningless, because of bias, which we will discuss later. Violating assumptions is clearly the devil’s work. Just for fun, let’s weight the model so that causal effect is even more affected by these propensity scores.</p>
+<pre class="r"><code># calculate weights and add to df
+datsim = datsim %&gt;%
+  mutate(w_ate = x/ .fitted + (1 - x)/(1 - .fitted))</code></pre>
+<pre class="r"><code># propensity score model
+ggplot(df_plot_ps_simuw)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p1),
+                 fill = &quot;turquoise3&quot;)+
+  geom_histogram(bins = 25,
+                 alpha = .5,
+                 aes(x = x_p1,
+                     weight = datsim$w_ate),
+                 fill = &quot;turquoise3&quot;)+
+  geom_histogram(bins = 5,
+                 aes(x = x_p0,
+                     y = -stat(count)),
+                 fill = &quot;tomato3&quot;)+
+  geom_histogram(bins = 25,
+                 alpha = .5,
+                 aes(x = x_p0,
+                     weight = datsim$w_ate,
+                     y = -stat(count)),
+                 fill = &quot;tomato3&quot;)+
+  geom_label(
+    label = &quot;Received Treatment&quot;,
+    x = .52,
+    y = 7
+  )+
+  geom_label(
+    label = &quot;Did Not Receive Treatment&quot;,
+    x = .52,
+    y = -14
+  )+
+  scale_y_continuous(&quot;count&quot;, label = abs) + 
+  scale_x_continuous(&quot;propensity score&quot;) +
+  labs(title = &quot;Unweighted Propensity Score Distribution&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>We get an ATE of 0.83.</p>
+<pre class="r"><code>datsim %&gt;%
+  summarise(
+    ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
+      sum((1-x)*w_ate)
+  )</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##     ate
+##   &lt;dbl&gt;
+## 1 0.840</code></pre>
+<p>How off are these weighted and unweighted estimates? We’ll group by <em>z</em> to find out. When we do this, observations for individuals with z &gt; 0.5 will not be included in the causal estimate for the general population. This is essentially how the problem of positivity is avoided in practice: study design establishes eligibility criteria that would exclude such persons from being in the study. Hence, our migraine sufferers would not be included in the study.</p>
+<pre class="r"><code># creating group variable to filter
+datsim$inpop = ifelse(datsim$z &lt; .5,1,0)
+
+datsim %&gt;%
+  group_by(inpop)%&gt;%
+  summarise(
+    observed_causal_effect = sum(y*x)/sum(x) - sum(y*(1 - x))/
+      sum((1-x)),
+    ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
+      sum((1-x)*w_ate)
+  )</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   inpop observed_causal_effect    ate
+##   &lt;dbl&gt;                  &lt;dbl&gt;  &lt;dbl&gt;
+## 1     0                 NaN    NaN   
+## 2     1                   1.37   1.49</code></pre>
+<pre class="r"><code>#mean(y[x == 1]) - mean(y[x == 0])</code></pre>
+<p>Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact!</p>
+<div id="why-are-these-estimates-wrong" class="section level3">
+<h3>Why are these estimates wrong?</h3>
+<p>We use causal estimands in practice regularly, because they are unbiased <em>when we meet the underlying assumptions</em>. For our causal estimator <span class="math inline">\(\hat{\tau}\)</span> to be unbiased, we need each <span class="math inline">\(X_i\)</span> to be random. When <span class="math inline">\(X_i\)</span> is random, we are able to take the expected value and see that <span class="math inline">\(E[\hat{\tau}] = \tau\)</span> . But wait, we made some of those <span class="math inline">\(X_i\)</span>’s above not random. Our <span class="math inline">\(E[X_i|Z] = 0\)</span>.</p>
+<p>When an individual has a unit assignment probability of 0 or 1, that means he/she will either never or always be assigned to the treatment group. From an intuitive perspective, if someone can never be part of the other group, they are fundamentally different from the others in the trial. The reason that our causal analysis works is that we are comparing people who could theoretically be in either group and therefore are similar. When someone cannot be in a particular group, we are conditioning on a zero-probability event.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

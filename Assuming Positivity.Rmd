@@ -158,10 +158,13 @@ datsim$inpop = ifelse(datsim$z < .5,1,0)
 datsim %>%
   group_by(inpop)%>%
   summarise(
-    observed_causal_effect = mean(y[x == 1]) - mean(y[x == 0]),
+    observed_causal_effect = sum(y*x)/sum(x) - sum(y*(1 - x))/
+      sum((1-x)),
     ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
       sum((1-x)*w_ate)
   )
+
+#mean(y[x == 1]) - mean(y[x == 0])
 ```
 
 Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact!

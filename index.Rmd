@@ -163,12 +163,11 @@ datsim %>%
     ate = sum(y*x*w_ate)/sum(x*w_ate) - sum(y*(1 - x)*w_ate)/
       sum((1-x)*w_ate)
   )
-
-#mean(y[x == 1]) - mean(y[x == 0])
 ```
 
+Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact! 
 
-Our unweighted causal effect was pulled down considerably by 0.699, and our ATE was penalized about 0.645. That is some impact!
+On the other hand, there is no treatment population, so R gives us an NaN and cannot even compute the causal estimate. This is fine, because there is no causal effect. The causal effect measures the difference between two populations, and we do not have two populations in this case.
 
 ### Why are these estimates wrong?
 
